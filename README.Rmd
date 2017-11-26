@@ -7,13 +7,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Tilataso
 
-echo "# tilataso" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git remote add origin https://github.com/paap0/tilataso.git
-git push -u origin master
+Data-kansiossa on aineisto. 
+
 
 
