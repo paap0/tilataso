@@ -1,0 +1,19 @@
+---
+title: "README"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+echo "# tilataso" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/paap0/tilataso.git
+git push -u origin master
+
+
