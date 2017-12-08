@@ -1,0 +1,515 @@
+
+---
+title: "Tilat"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+## Tarkastelu palasina
+
+
+Luen aineiston, jossa olen korvannut puuttuvat havainnot mediaanilla. Se keskiarvoistaa aineistoa, mutta puuttuvia on niin paljon, etta ajattelin kokeilla kuitenkin nain.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# load data
+tilat<-read.csv(file="tilaed.csv", header=TRUE)
+```
+
+### <span style="color:purple">1-20 muuttujaa</span>
+
+
+
+```{r message=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
+
+# Define packages required by this script.
+library(dplyr)
+library(car)
+library(ggplot2)
+library(stargazer)
+library(GGally)
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(tableone)
+library(FactoMineR)
+library(dplyr)
+library(knitr)
+library(DT)
+library(xtable)
+library(factoextra)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#rbind(human[which(human$ad.birth.rate==max(human$ad.birth.rate)),],
+#human[which(human$ad.birth.rate==min(human$ad.birth.rate)),])
+#p8<-boxplot(human$ad.birth.rate,col="pink",main="Share of female seats in parliament")
+#print("Max and min value countries for female share in parliament")
+#rbind(human[which(human$parl.prop==max(human$parl.prop)),],
+#human[which(human$parl.prop==min(human$parl.prop)),])
+
+
+#rownames(rbind(human[which(human$parl.prop==max(human$parl.prop)),],
+#human[which(human$parl.prop==min(human$parl.prop)),]))
+```
+
+
+Ensin muutan kaikki tassa kohtaa numeerisiksi (jatkuviksi) ja poistan ainoastaan puuttuvia havintoja sisaltavat sarakkeet. 
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+tilatnum<-tilat %>%
+  mutate_all(as.numeric)
+colnames(tilat)[ apply(tilat, 2, anyNA) ]
+tilat<-tilat[ , apply(tilat, 2, function(x) !any(is.na(x)))]
+```
+
+Sitten valitsen ensimmaiset sarakkeet tarkasteltavaksi ja piirran ne alustavasti.
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+kuvat1<-tilat[,1:20]
+gather(kuvat1) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+```
+
+ja
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE, paged.print=FALSE}
+kor1<-kuvat1[-1]
+kor1<-kor1[-1]
+kor1<-kor1[-2]
+
+cor_fun <- function(data, mapping, method="pearson", ndp=2, sz=5, stars=TRUE, ...){
+
+    data <- na.omit(data[,c(as.character(mapping$x), as.character(mapping$y))])
+
+    x <- data[,as.character(mapping$x)]
+    y <- data[,as.character(mapping$y)]
+
+    corr <- cor.test(x, y, method=method)
+    est <- corr$estimate
+    lb.size <- sz* abs(est) 
+
+    if(stars){
+      stars <- c("***", "**", "*", "")[findInterval(corr$p.value, c(0, 0.001, 0.01, 0.05, 1))]
+      lbl <- paste0(round(est, ndp), stars)
+    }else{
+      lbl <- round(est, ndp)
+    }
+
+    ggplot(data=data, mapping=mapping) + 
+      annotate("text", x=mean(x), y=mean(y), label=lbl, size=lb.size,...)+
+      theme(panel.grid = element_blank())
+  }
+
+
+ggpairs(kor1%>%mutate_all(as.numeric), 
+        lower=list(continuous=wrap("smooth", colour="purple")),
+        diag=list(continuous=wrap("barDiag", fill="purple")),
+        upper=list(continuous=cor_fun),title="Graphical overview of the 17 variables")
+```
+
+Sitten tarkastelen muuttujien nimia ja luonnetta (jatkuva/kategorinen).
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+colnames(kuvat1)
+#Pidetaan nama
+keeps1<-
+c(                             
+                           
+"Haastrooli_1OmEiosall_2OmOsall_3Esimies"
+,"Tila"                                   
+,"Tuotsuunta"                             
+,"Emakot"                                 
+,"Ensikot"                                
+,"Lihasiat_tontilla"                      
+                       
+,"Karjut_haju"                            
+,"Tautsu"                                 
+,"Tautsuok"                               
+,"Tautsu_012"                             
+,"Siilotkat"                              
+,"Tuhoei"                                 
+,"Eikulkuih"                              
+,"Eikulkuel"                              
+                                
+,"Suojvarpuh"                             
+,"Kadetpesu"                              
+,"EMKUOL")
+
+#Jatkuvia nama
+num1<-c("Emakot"                                 
+,"Ensikot"                                
+,"Lihasiat_tontilla"                      
+,"Karjut_haju")
+
+
+#kuvat1n<-kuvat1 %>% 
+#  select(num1)
+
+#kuvat1<-kuvat1%>% 
+#  select(keeps1)
+
+#Tama on kategoristen setti
+kuvat11<- kuvat1 %>% dplyr::select(one_of(keeps1))%>%  dplyr::select(-one_of(num1))
+
+#ja kategoriset muuttujat
+kat1<-colnames(kuvat11)
+
+#lisataan viela kuolleisuusjako
+#kuvat1$EMKUOL<-tilat$EMKUOLLJAKO
+#kuvat11<-drop(kuvat1,one_of(num1)
+#%>% 
+#  rename(developer = assignee.login) %>%
+#  select(-starts_with("assignee"), -title, -comments, -locked, #-labels, -id, -body) %>% 
+#  count(developer)
+
+```
+
+Paatan tiputtaa tassa kohtaa muutaman muuttujan. Lisaan aineistoon emkuoljako-muuttujan ja teen taulukon
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+df1<- dplyr::select(kuvat1, one_of(keeps1))
+df1<-df1[-2]
+df1$EMKUOL<-tilat$EMKUOLLJAKO
+head(df1)
+
+CreateTableOne(vars=keeps1,strata=c("EMKUOL"),factorVars=kat1,data=df1 )
+
+```
+
+
+### Muuttujat 21-40
+
+Seuraavat muuttujat ja niiden tarkastelu
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+kuvat2<-tilat[,21:40]
+colnames(kuvat2)
+gather(kuvat2) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+```
+
+ja
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE, paged.print=FALSE}
+kor2<-kuvat2[-1]
+kor2<-kor2[-16]
+kor2<-kor2[-8]
+
+cor_fun <- function(data, mapping, method="pearson", ndp=2, sz=5, stars=TRUE, ...){
+
+    data <- na.omit(data[,c(as.character(mapping$x), as.character(mapping$y))])
+
+    x <- data[,as.character(mapping$x)]
+    y <- data[,as.character(mapping$y)]
+
+    corr <- cor.test(x, y, method=method)
+    est <- corr$estimate
+    lb.size <- sz* abs(est) 
+
+    if(stars){
+      stars <- c("***", "**", "*", "")[findInterval(corr$p.value, c(0, 0.001, 0.01, 0.05, 1))]
+      lbl <- paste0(round(est, ndp), stars)
+    }else{
+      lbl <- round(est, ndp)
+    }
+
+    ggplot(data=data, mapping=mapping) + 
+      annotate("text", x=mean(x), y=mean(y), label=lbl, size=lb.size,...)+
+      theme(panel.grid = element_blank())
+  }
+
+
+ggpairs(kor2%>%mutate_all(as.numeric), 
+        lower=list(continuous=wrap("smooth", colour="purple")),
+        diag=list(continuous=wrap("barDiag", fill="purple")),
+        upper=list(continuous=cor_fun),title="Graphical overview of the 17 variables")
+```
+
+Sitten tarkastelen muuttujien nimia ja luonnetta (jatkuva/kategorinen).
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+colnames(kuvat2)
+summary(kuvat2)
+#Pidetaan nama
+keeps2<-
+c(                             
+ "Saappesu"                          
+ ,"Lasthu"                            
+ ,"Teurkuski_0paaseesikalaan_1eipaase"
+ ,"JOU_kertayt_0ei"                    
+ ,"JOU_tuotvaiherill_0ei"             
+ ,"JOU_pesu_0ei"                       
+ ,"JOU_pesuaine_0ei"                  
+ ,  "JOU_tyhjana_mi1vrk_0ei"   
+ ,"PORSOSASTO_kertayt_0ei"             
+, "PORS_tuotvaiherill_0ei"            
+,"PORS_pesu_0ei"                      
+,"PORS_pesuaine_0ei"                 
+,"PORS_tyhjana_mi1vr_0ei"            
+,"Raa_auto_hakee_0ei"                
+,"Raa_tuhoelain_1eipaase_0paaseesic")
+
+#Jatkuvia nama
+
+
+
+#kuvat1n<-kuvat1 %>% 
+#  select(num1)
+
+#kuvat1<-kuvat1%>% 
+#  select(keeps1)
+
+#Tama on kategoristen setti
+#kuvat11<- kuvat1 %>% dplyr::select(one_of(keeps1))%>%  dplyr::select(-one_of(num1))
+
+#ja kategoriset muuttujat
+kat2<-keeps2
+
+#lisataan viela kuolleisuusjako
+#kuvat1$EMKUOL<-tilat$EMKUOLLJAKO
+#kuvat11<-drop(kuvat1,one_of(num1)
+#%>% 
+#  rename(developer = assignee.login) %>%
+#  select(-starts_with("assignee"), -title, -comments, -locked, #-labels, -id, -body) %>% 
+#  count(developer)
+
+```
+
+Paatan tiputtaa tassa kohtaa muutaman muuttujan. Lisaan aineistoon emkuoljako-muuttujan ja teen taulukon
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+df2<- dplyr::select(kuvat2, one_of(keeps2))
+df2$EMKUOL<-tilat$EMKUOLLJAKO
+
+
+CreateTableOne(vars=keeps2,strata=c("EMKUOL"),factorVars=kat2,data=df2)
+
+```
+
+### Seuraavat muuttujat
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+kuvat3<-tilat[,41:60]
+colnames(kuvat3)
+gather(kuvat3) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+```
+
+ja
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+
+cor_fun <- function(data, mapping, method="pearson", ndp=2, sz=5, stars=TRUE, ...){
+
+    data <- na.omit(data[,c(as.character(mapping$x), as.character(mapping$y))])
+
+    x <- data[,as.character(mapping$x)]
+    y <- data[,as.character(mapping$y)]
+
+    corr <- cor.test(x, y, method=method)
+    est <- corr$estimate
+    lb.size <- sz* abs(est) 
+
+    if(stars){
+      stars <- c("***", "**", "*", "")[findInterval(corr$p.value, c(0, 0.001, 0.01, 0.05, 1))]
+      lbl <- paste0(round(est, ndp), stars)
+    }else{
+      lbl <- round(est, ndp)
+    }
+
+    ggplot(data=data, mapping=mapping) + 
+      annotate("text", x=mean(x), y=mean(y), label=lbl, size=lb.size,...)+
+      theme(panel.grid = element_blank())
+  }
+
+
+ggpairs(kor2%>%mutate_all(as.numeric), 
+        lower=list(continuous=wrap("smooth", colour="purple")),
+        diag=list(continuous=wrap("barDiag", fill="purple")),
+        upper=list(continuous=cor_fun),title="Graphical overview of the 17 variables")
+```
+
+Sitten tarkastelen muuttujien nimia ja luonnetta (jatkuva/kategorinen).
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+colnames(kuvat3)
+summary(kuvat3)
+#Pidetaan nama
+keeps3<-
+c(                             
+"Tuhoelmerkkeja_0kylla_1ei"                      
+, "Lintuja_0kylla_1ei"                             
+, "Tuho_ohjelma"                                   
+                                   
+, "kissoja0on1ei"                                  
+, "Kotielain_sikalaan_0kylla_1ei"                  
+, "Vesi_1kunn_0oma"                                
+                                           
+                                       
+, "Sirko"                                          
+, "ClC"                                            
+                                            
+, "SI"                                             
+, "APP"                                            
+                              
+, "Loisaika_1ennenpors_2_porskars"                 
+                                       
+, "Em_hakissa_yhdjal_0maxtunteja_1vrkjne" )
+
+#Jatkuvia nama
+
+#kuvat1n<-kuvat1 %>% 
+#  select(num1)
+
+#kuvat1<-kuvat1%>% 
+#  select(keeps1)
+
+#Tama on kategoristen setti
+#kuvat11<- kuvat1 %>% dplyr::select(one_of(keeps1))%>%  dplyr::select(-one_of(num1))
+
+#ja kategoriset muuttujat
+kat3<-keeps3
+
+#lisataan viela kuolleisuusjako
+#kuvat1$EMKUOL<-tilat$EMKUOLLJAKO
+#kuvat11<-drop(kuvat1,one_of(num1)
+#%>% 
+#  rename(developer = assignee.login) %>%
+#  select(-starts_with("assignee"), -title, -comments, -locked, #-labels, -id, -body) %>% 
+#  count(developer)
+
+```
+
+Paatan tiputtaa tassa kohtaa muutaman muuttujan. Lisaan aineistoon emkuoljako-muuttujan ja teen taulukon
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+kuvat3$Em_hakissa_yhdjal_0maxtunteja_1vrkjne<-ifelse(kuvat3$Em_hakissa_yhdjal_0maxtunteja_1vrkjne>0,1,0)
+
+df3<- dplyr::select(kuvat3, one_of(keeps3))
+df3$EMKUOL<-tilat$EMKUOLLJAKO
+
+
+
+CreateTableOne(vars=keeps3,strata=c("EMKUOL"),factorVars=kat3,data=df3)
+
+```
+
+
+### Seuraavat muuttujat
+
+
+Seuraavat muuttujat ja niiden tarkastelu
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+kuvat4<-tilat[,61:80]
+colnames(kuvat4)
+gather(kuvat4) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+```
+
+ja
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE, paged.print=FALSE}
+kor2<-kuvat2[-1]
+kor2<-kor2[-16]
+kor2<-kor2[-8]
+
+cor_fun <- function(data, mapping, method="pearson", ndp=2, sz=5, stars=TRUE, ...){
+
+    data <- na.omit(data[,c(as.character(mapping$x), as.character(mapping$y))])
+
+    x <- data[,as.character(mapping$x)]
+    y <- data[,as.character(mapping$y)]
+
+    corr <- cor.test(x, y, method=method)
+    est <- corr$estimate
+    lb.size <- sz* abs(est) 
+
+    if(stars){
+      stars <- c("***", "**", "*", "")[findInterval(corr$p.value, c(0, 0.001, 0.01, 0.05, 1))]
+      lbl <- paste0(round(est, ndp), stars)
+    }else{
+      lbl <- round(est, ndp)
+    }
+
+    ggplot(data=data, mapping=mapping) + 
+      annotate("text", x=mean(x), y=mean(y), label=lbl, size=lb.size,...)+
+      theme(panel.grid = element_blank())
+  }
+
+
+ggpairs(kor2%>%mutate_all(as.numeric), 
+        lower=list(continuous=wrap("smooth", colour="purple")),
+        diag=list(continuous=wrap("barDiag", fill="purple")),
+        upper=list(continuous=cor_fun),title="Graphical overview of the 17 variables")
+```
+
+Sitten tarkastelen muuttujien nimia ja luonnetta (jatkuva/kategorinen).
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+colnames(kuvat4)
+summary(kuvat4)
+#Pidetaan nama
+
+keeps4<-
+c(                             
+"Virikeonei"            
+,"Ton_tiheys_1aina_2jaetaan"                             
+,"Yhdistaggrtmp_1eiongelma_2tmp_3eitmp"                  
+,"Muutelkaynn_0ei_1_satunn_2kaynnmuusaann"               
+,"maitokuume"                                            
+,"metriitti"                                             
+, "valuttelu"                                             
+,"mastiitti"                                             
+, "ontuma"                                                
+, "syomattomyys"                                          
+, "kuume"                                                 
+, "loukkaantuminen"                                       
+, "Tiineet_NSAIDper100"                                   
+, "Tiineet_ABper101"                                      
+,"Pors_NSAIDper100"                                      
+, "Pors_ABper100"                                         
+,"Rutiinilaak_0ei_1oksit_2kaynn_3nsaidpors_4kokkid_6ppab"
+, "AB_rutiinilaak"                                        
+, "Oksitosiini_rutiinisti"                                
+, "Kaynnistys_rutiinisti")
+
+
+kuvat4$Virikeonei<-ifelse(kuvat4$Virike_0ei_1ol_2hei_3saha_4tur_5sanom_lelu>0,1,0)
+
+
+#kuvat1n<-kuvat1 %>% 
+#  select(num1)
+
+#kuvat1<-kuvat1%>% 
+#  select(keeps1)
+
+#Tama on kategoristen setti
+#kuvat11<- kuvat1 %>% dplyr::select(one_of(keeps1))%>%  dplyr::select(-one_of(num1))
+
+#ja kategoriset muuttujat
+kat4<-keeps4
+
+#lisataan viela kuolleisuusjako
+#kuvat1$EMKUOL<-tilat$EMKUOLLJAKO
+#kuvat11<-drop(kuvat1,one_of(num1)
+#%>% 
+#  rename(developer = assignee.login) %>%
+#  select(-starts_with("assignee"), -title, -comments, -locked, #-labels, -id, -body) %>% 
+#  count(developer)
+
+```
+
+Paatan tiputtaa tassa kohtaa muutaman muuttujan. Lisaan aineistoon emkuoljako-muuttujan ja teen taulukon
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+df4<- dplyr::select(kuvat4, one_of(keeps4))
+df4$EMKUOL<-tilat$EMKUOLLJAKO
+
+
+CreateTableOne(vars=keeps4,strata=c("EMKUOL"),factorVars=kat4,data=df4)
+
+```
+
