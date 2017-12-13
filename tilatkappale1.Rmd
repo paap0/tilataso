@@ -1,0 +1,214 @@
+---
+title: "Tilatkappale1"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+
+
+---
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# load data
+setwd("~/GitHub/tilataso")
+library(readr)
+tilat<-read.csv(file="tilailman.csv", header=TRUE)
+```
+
+### <span style="color:purple">1-20 muuttujaa</span>
+
+
+
+```{r message=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
+
+# Define packages required by this script.
+library(dplyr)
+library(car)
+library(ggplot2)
+library(stargazer)
+library(GGally)
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(tableone)
+library(FactoMineR)
+library(dplyr)
+library(knitr)
+library(DT)
+library(xtable)
+library(factoextra)
+library(magrittr)
+library(GGally)
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(corrplot)
+library(plotly)
+library(dplyr)
+summaryKable <- function(dataFrame) {
+  require(dplyr)
+  require(stringr)
+  vect <- sapply(dataFrame, function(x) {
+    if(!is.factor(x)) { 
+      a <- c(quantile(x, probs = c(0,0.25,0.5), na.rm = T), 
+             mean(x, na.rm = T),
+             quantile(x, probs = c(0.75,1), na.rm = T)) %>% 
+        formatC(format = "f", digits = 3) %>% 
+        unname() 
+    }
+    
+    if(is.factor(x)) {
+      a <- sapply(1:5, function(y) 
+            sum(x == levels(x)[y]) %>% 
+            paste(levels(x)[y],. , sep = ":\ ")) 
+      a <- c("Levels", a) %>% str_replace_all("NA: NA", "--")
+    }
+    
+    return(a)
+  })
+  row.names(vect) <- c("Min", "1st Q", "Median", "Mean", "3rd Q", "Max")
+  return(t(vect))
+}
+```
+
+
+
+Ensin muutan kaikki tassa kohtaa numeerisiksi (jatkuviksi) ja poistan ainoastaan puuttuvia havintoja sisaltavat sarakkeet. 
+
+
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+colnames(tilat)[ apply(tilat, 2, anyNA) ]
+tilat<-tilat[ , apply(tilat, 2, function(x) !any(is.na(x)))]
+
+
+
+summaryKable(tilat) %>% 
+  kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>%
+scroll_box(height = "160px")
+
+
+
+  
+```
+
+
+
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+
+KreateTableOne = function(x, ...){
+  t1 = tableone::CreateTableOne(data=x, ...)
+  t2 = print(t1, quote=TRUE)
+  rownames(t2) = gsub(pattern='\\"', replacement='', rownames(t2))
+  colnames(t2) = gsub(pattern='\\"', replacement='', colnames(t2))
+  return(t2)
+}
+
+
+```
+
+```{r results='hide'}
+#' This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+tilatkat<-tilat%>%mutate_all(as.factor)
+tilatkat1<-tilatkat[,9:100]
+tilatkat1$EMKUOL<-tilat$EMKUOLLJAKO
+table1 = KreateTableOne(x=tilatkat1, strata='EMKUOL')
+```
+
+```{r}
+
+knitr::kable(table1)
+table1%>%
+    kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+colnames(tilat)[ apply(tilat, 2, anyNA) ]
+tilat<-tilat[ , apply(tilat, 2, function(x) !any(is.na(x)))]
+
+
+
+summaryKable(tilat) %>% 
+  kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>%
+scroll_box(height = "160px")
+
+
+
+  
+```
+
+
+
+
+
+```{r results='hide'}
+#' This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+tilatkat<-tilat%>%mutate_all(as.factor)
+tilatkat2<-tilatkat[,101:200]
+tilatkat2$EMKUOL<-tilat$EMKUOLLJAKO
+table2 = KreateTableOne(x=tilatkat2, strata='EMKUOL')
+```
+
+```{r}
+
+knitr::kable(table2)
+table2%>%
+    kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+
+
+
+```{r results='hide'}
+#' This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+tilatkat<-tilat%>%mutate_all(as.factor)
+tilatkat3<-tilatkat[,201:300]
+tilatkat3$EMKUOL<-tilat$EMKUOLLJAKO
+table3 = KreateTableOne(x=tilatkat3, strata='EMKUOL')
+```
+
+```{r}
+
+knitr::kable(table3)
+table3%>%
+    kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+
+
+
+```{r results='hide'}
+#' This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+tilatkat<-tilat%>%mutate_all(as.factor)
+tilatkat4<-tilatkat[,301:369]
+table4 = KreateTableOne(x=tilatkat4, strata='EMKUOLLJAKO')
+```
+
+```{r}
+
+knitr::kable(table4)
+table4%>%
+    kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
