@@ -19,13 +19,7 @@ output:
   
 ***
   
-```{r child = "testitila.Rmd"}
-```
-
-***
-***
-  
-```{r child = "tilatkappale1.Rmd"}
+```{r child = "tilatkappale27122017.Rmd"}
 ```
 
 ***
