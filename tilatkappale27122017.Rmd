@@ -125,7 +125,6 @@ table1 = KreateTableOne(x=tilatkat, strata='EMKUOL')
 
 ```{r}
 
-knitr::kable(table1)
 table1%>%
     kable("html", align = "rrr", caption = "Data variable summary strat by EMKUOL") %>%
   kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
@@ -148,7 +147,6 @@ table2 = KreateTableOne(x=tilatkat2, strata='EMPOIS')
 
 ```{r}
 
-knitr::kable(table2)
 table2%>%
     kable("html", align = "rrr", caption = "Data variable summary strat by EMPOIS") %>%
   kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
