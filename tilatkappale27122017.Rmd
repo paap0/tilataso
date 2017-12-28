@@ -110,10 +110,13 @@ KreateTableOne = function(x, ...){
 
 ```
 
+
+
 ### Yhteenveto kuolleisuuden mediaanin mukaan
 
 ```{r results='hide'}
 #This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+
 tilatkat<-tilat[,1:218]%>%mutate_all(as.factor)
 
 tilatkat$EMKUOL<-tilat$EMKUOLLJAKO
@@ -124,10 +127,9 @@ table1 = KreateTableOne(x=tilatkat, strata='EMKUOL')
 
 knitr::kable(table1)
 table1%>%
-    kable("html", align = "rrr", caption = "Data variable summary STRAT BY EMKUOL") %>%
+    kable("html", align = "rrr", caption = "Data variable summary strat by EMKUOL") %>%
   kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
-  scroll_box(height = "160px" )
-
+  scroll_box(height = "300px" )
 
 ```
 
@@ -158,10 +160,102 @@ table2%>%
 
 ```{r}
 df<-tilat[,219:233]%>%mutate_all(as.numeric)
-dfkat<-tilat[,1:218]%>%mutate_all(as.factor)
+dfkat<-tilat[,1:150]%>%mutate_all(as.factor)
 
 dfall<-cbind(dfkat,df)
-res_mca = MCA(dfall,quanti.sup=c(219:233), graph = FALSE) 
+
+DF<-dfall[c("Haastrooli_1OmEiosall_2OmOsall_3Esimies"                  
+,"Tuotsuunta"                                                 
+,"Karjut_astsiem"                                             
+,"Tautsu"                                                     
+,"Tautsuok"                                                   
+, "Tautsu_012"                                                 
+                                                                                                                 
+,"JOU_pesu_0ei"                                               
+                          
+,"JOU_tyhjana_mi1vrk_0ei"                                     
+,"PORSOSASTO_kertayt_0ei"                                     
+
+                                   
+,"PORS_pesu_0ei"                                              
+,"PORS_pesuaine_0ei"                                          
+,"PORS_desinf_0ei_1LIU_2KUIVA"                                
+,"PORS_tyhjana_mi1vr_0ei"                                     
+                                             
+,"Raa_tuhoelain_1eipaase_0paaseesic"                          
+, "Tuhoelmerkkeja_0kylla_1ei"                                  
+
+                                         
+,"Tuho_ohjelma"                                               
+, "kissoja0on1ei"                                              
+,"Kotielain_sikalaan_0kylla_1ei"                              
+,"Vesi_1kunn_0oma"                                            
+                                                    
+, "Loisaika_1ennenpors_2_porskars"                             
+,"Uusiryh"                                                    
+, "Ton_tiheys_1aina_2jaetaan"                                  
+, "Yhdistaggrtmp_1eiongelma_2tmp_3eitmp"                       
+,"Muutelkaynn_0ei_1_satunn_2kaynnmuusaann"                    
+,"maitokuume"                                                 
+, "metriitti"                                                  
+, "valuttelu"                                                  
+,"mastiitti"                                                  
+,"ontuma"                                                     
+, "syomattomyys"                                               
+,"kuume"                                                      
+, "loukkaantuminen"                                            
+,"AB_rutiinilaak"                                             
+,"Oksitosiini_rutiinisti"                                     
+, "Kaynnistys_rutiinisti"                                      
+, "NSAID_porsituksessa_rutiini"                                
+, "OMATENSIKOT_0EI_1KYLLa"                                     
+                                                                                                 
+, "Ensikk_yhdist_1ennsiem_2tiineena_3porsjalk_4tilantmuk"      
+, "Kiimantark_ryhmakaytt"                                      
+, "Kiimantarkalkaa_vrkvier"                                    
+, "Kiimamerk_emakonselka"                                      
+, "Kiimantark_postsiem"                                        
+ , "Postsiem_ryhmakaytt_havainnointi"                           
+, "Tiin_ultra2"                                                
+                              
+, "Kaynnistaminen_0ei_1rutiini_2yliaika_3ryhma_4satunnainen"   
+, "Pesantekomatmaara_1runsas_2jnkv_3niukka"                    
+, "Sisatutk_ennenoksitos"                                      
+, "Porsitusaputekn_1empesu_2kaspesu_3kasine_4liukaste"         
+, "PorsitusNSAID_0ei_1rutiinisti_2tarvittaessa"                
+                   
+, "Yksilöll_ruokinta"                                          
+                                               
+, "AS_em_kars"                                                 
+, "AS_karspit"                                                 
+, "AS_karslev"                                                 
+, "AS_meluton"                                                 
+, "AS_haittael_ei"                                             
+, "AS_haittael_laatu"                                          
+, "AS_ilma_aistin"                                             
+, "AS_ilma_amm"                                                
+                                               
+                                                
+, "AS_valaistus"                                               
+, "AS_alusta12345"                                             
+, "AS_alusta_5_laatu"                                          
+,"AS_latt_rakenne1234"                                        
+                                                                                           
+,"AS_kuiv_mat12345"                                           
+,"AS_kuiv_5_mika"                                             
+, "AS_maara1234"                                               
+, "AS_tonkimat123456"                                          
+, "AS_tonkimat_6_mika"                                         
+, "AS_mat_vaiht"                                               
+, "AS_maara123"                                                
+, "AS_annostelu1234"                                           
+, "AS_lannanpoisto12"                                          
+, "AS_rak_kunto"                                               
+, "AS_latt_pitava")]
+
+dfuusi<-cbind(DF,df)
+tail(df)
+res_mca = MCA(dfuusi, quanti.sup = c(74:88), graph = FALSE) 
 
 ```
 
@@ -187,7 +281,16 @@ fviz_mca_var(res_mca, choice = "mca.cor",
             ggtheme = theme_minimal())
 ```
 To visualize the percentage of inertia explained by each MCA dimension:
+
+```{r echo=TRUE, fig.align="center", fig.height=9, fig.width=13, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_minimal()
+             )
+```
 ```{r eval=FALSE, fig.align="center", message=FALSE, warning=FALSE, include=FALSE}
 library(FactoInvestigate)
 Investigate(res_mca)
 ```
+
