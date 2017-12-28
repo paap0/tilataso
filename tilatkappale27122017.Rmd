@@ -156,7 +156,7 @@ table2%>%
 
 ## MCA
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 df<-tilat[,219:233]%>%mutate_all(as.numeric)
 dfkat<-tilat[,1:150]%>%mutate_all(as.factor)
 
@@ -257,6 +257,13 @@ res_mca = MCA(dfuusi, quanti.sup = c(74:88), graph = FALSE)
 
 ```
 
+
+```{r}
+tilatkat<-tilat[,1:218]%>%mutate_all(as.factor)
+tilatnum<-tilat[,219:233]%>%mutate_all(as.numeric)
+tilat<-cbind(tilatkat,tilatnum)
+res_mca = MCA(tilat, quanti.sup = c(219:233), graph = FALSE) 
+```
 
 To visualize the percentage of inertia explained by each MCA dimension:
 ```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE}
