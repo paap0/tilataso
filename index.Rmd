@@ -20,7 +20,7 @@ output:
   
 ***
   
-```{r child = "tilatkappale27122017.Rmd"}
+```{r child = "tilatkappale28122017.Rmd"}
 ```
 
 ***
