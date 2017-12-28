@@ -1,6 +1,6 @@
 ---
 title: "Tilatasoprojekti"
-author: "Paula Bergman"
+author: "Paula Bergman, paula.bergman@helsinki.fi"
 output:
   html_document:
     theme: cosmo
@@ -10,7 +10,7 @@ output:
     fig_width: 6
     fig_height: 4
     code_folding: hide
-    encoding: UTF-8
+    
 ---
 
 ***
