@@ -1,0 +1,272 @@
+---
+title: "Tilatkappale1"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+encoding: UTF-8
+
+---
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# load data
+setwd("~/GitHub/tilataso")
+library(readr)
+tilapieni<-read.csv(file="tilapieni.csv", header=TRUE)
+```
+
+### <span style="color:purple">Kuvailevat</span>
+
+
+
+```{r message=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
+
+# Define packages required by this script.
+library(dplyr)
+library(car)
+library(ggplot2)
+library(stargazer)
+library(GGally)
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(tableone)
+library(FactoMineR)
+library(dplyr)
+library(knitr)
+library(DT)
+library(xtable)
+library(factoextra)
+library(magrittr)
+library(GGally)
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(corrplot)
+library(plotly)
+library(dplyr)
+summaryKable <- function(dataFrame) {
+  require(dplyr)
+  require(stringr)
+  vect <- sapply(dataFrame, function(x) {
+    if(!is.factor(x)) { 
+      a <- c(quantile(x, probs = c(0,0.25,0.5), na.rm = T), 
+             mean(x, na.rm = T),
+             quantile(x, probs = c(0.75,1), na.rm = T)) %>% 
+        formatC(format = "f", digits = 3) %>% 
+        unname() 
+    }
+    
+    if(is.factor(x)) {
+      a <- sapply(1:5, function(y) 
+            sum(x == levels(x)[y]) %>% 
+            paste(levels(x)[y],. , sep = ":\ ")) 
+      a <- c("Levels", a) %>% str_replace_all("NA: NA", "--")
+    }
+    
+    return(a)
+  })
+  row.names(vect) <- c("Min", "1st Q", "Median", "Mean", "3rd Q", "Max")
+  return(t(vect))
+}
+```
+
+
+Valitsen muutaman jatkuvan muuttujan ja muutoin valitsen ne, joissa on alle 6 kategoriaa. Yhteenveto muuttujista:
+
+
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+tilapienikat<-tilapieni[1:76]%>%mutate_all(as.factor)
+tilapieninum<-tilapieni[77:92]%>%mutate_all(as.numeric)
+tilapieni<-cbind(tilapieninum,tilapienikat)
+
+summaryKable(tilapieni) %>% 
+  kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>%
+scroll_box(height = "300px")
+ 
+```
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+kuvat2<-tilapienikat
+colnames(kuvat2)
+gather(kuvat2) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+```
+
+
+
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE, paged.print=FALSE}
+kor2<-tilapieninum
+
+
+cor_fun <- function(data, mapping, method="pearson", ndp=2, sz=5, stars=TRUE, ...){
+
+    data <- na.omit(data[,c(as.character(mapping$x), as.character(mapping$y))])
+
+    x <- data[,as.character(mapping$x)]
+    y <- data[,as.character(mapping$y)]
+
+    corr <- cor.test(x, y, method=method)
+    est <- corr$estimate
+    lb.size <- sz* abs(est) 
+
+    if(stars){
+      stars <- c("***", "**", "*", "")[findInterval(corr$p.value, c(0, 0.001, 0.01, 0.05, 1))]
+      lbl <- paste0(round(est, ndp), stars)
+    }else{
+      lbl <- round(est, ndp)
+    }
+
+    ggplot(data=data, mapping=mapping) + 
+      annotate("text", x=mean(x), y=mean(y), label=lbl, size=lb.size,...)+
+      theme(panel.grid = element_blank())
+  }
+
+
+ggpairs(kor2%>%mutate_all(as.numeric), 
+        lower=list(continuous=wrap("smooth", colour="purple")),
+        diag=list(continuous=wrap("barDiag", fill="purple")),
+        upper=list(continuous=cor_fun),title="Graphical overview of the 17 variables")
+```
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+
+KreateTableOne = function(x, ...){
+  t1 = tableone::CreateTableOne(data=x, ...)
+  t2 = print(t1, quote=TRUE)
+  rownames(t2) = gsub(pattern='\\"', replacement='', rownames(t2))
+  colnames(t2) = gsub(pattern='\\"', replacement='', colnames(t2))
+  return(t2)
+}
+
+
+```
+
+
+
+### Yhteenveto kuolleisuuden mediaanin mukaan
+
+```{r results='hide'}
+#This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+
+
+table1 = KreateTableOne(x=tilapieni, factorVars=colnames(tilapienikat), strata='EMKUOLLJAKO')
+```
+
+```{r}
+
+table1%>%
+    kable("html", align = "rrr", caption = "Data variable summary strat by EMKUOL") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
+
+```
+
+
+
+
+### Yhteenveto poistojen mediaanin mukaan
+
+```{r results='hide'}
+#This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+
+
+table2 = KreateTableOne(x=tilapieni, factorVars=colnames(tilapienikat), strata='EMPOISJAKO')
+```
+
+```{r}
+
+table2%>%
+    kable("html", align = "rrr", caption = "Data variable summary strat by EMPOIS") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
+
+```
+
+
+
+### Yhteenveto joku hylkays mukaan
+
+```{r results='hide'}
+#This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+
+
+table3 = KreateTableOne(x=tilapieni, factorVars=colnames(tilapienikat), strata='JOKUHYLK_01')
+```
+
+```{r}
+
+table3%>%
+    kable("html", align = "rrr", caption = "Data variable summary strat by JOKUHYLK") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
+
+```
+## MCA
+
+
+```{r}
+
+res_mca = MCA(tilapieni, quanti.sup = c(1:16), graph = FALSE) 
+```
+
+```{r}
+
+summary(res_mca)
+```
+
+
+To visualize the percentage of inertia explained by each MCA dimension:
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE}
+eig.val <- res_mca$eig
+barplot(eig.val[, 2], 
+        names.arg = 1:nrow(eig.val), 
+        main = "Variances Explained by Dimensions (%)",
+        xlab = "Principal Dimensions",
+        ylab = "Percentage of variances",
+        col ="steelblue")
+# Add connected line segments to the plot
+lines(x = 1:nrow(eig.val), eig.val[, 2], 
+      type = "b", pch = 19, col = "red")
+```
+
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, choice = "mca.cor", 
+            repel = TRUE, # Avoid text overlapping (slow)
+            ggtheme = theme_minimal())
+```
+
+
+To visualize the percentage of inertia explained by each MCA dimension:
+
+```{r echo=TRUE, fig.align="center", fig.height=9, fig.width=13, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_minimal()
+             )
+```
+
+Simple bar plots can also be used to visualize contribution of variable categories. The top 12 variable categories contributing to the first and second dimension:
+
+```{r echo=TRUE, fig.align="center", fig.height=4, fig.width=4, message=FALSE, warning=FALSE}
+# Contributions of rows to dimension 1
+fviz_contrib(res_mca, choice = "var", axes = 1, top = 12)
+# Contributions of rows to dimension 2
+fviz_contrib(res_mca, choice = "var", axes = 2, top = 12)
+```
+
+```{r eval=FALSE, fig.align="center", message=FALSE, warning=FALSE, include=FALSE}
+library(FactoInvestigate)
+res_mcacat<-MCA(tilapienikat,graph=FALSE)
+Investigate(res_mcacat)
+```
+

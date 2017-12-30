@@ -24,3 +24,5 @@ output:
 ```
 
 ***
+```{r child = "valitut29122017.Rmd"}
+```
