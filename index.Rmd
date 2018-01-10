@@ -32,3 +32,16 @@ output:
 ```
 
 ***
+
+```{r child = "bio.Rmd"}
+```
+
+***
+```{r child = "manag.Rmd"}
+```
+
+***
+```{r child = "vac.Rmd"}
+```
+
+***

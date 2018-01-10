@@ -1,5 +1,5 @@
 ---
-title: "medic"
+title: "manag"
 output:
   html_document:
     toc: true
@@ -7,7 +7,7 @@ output:
 
 ---
 
-### Medication and diseases
+### Management
 
 ```{r message=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
 
@@ -75,22 +75,22 @@ library(FactoInvestigate)
 library(factoextra)
 library(dplyr)
 library(explor)
-med<-read.csv(file="med.csv", header=TRUE)
+med<-read.csv(file="manag.csv", header=TRUE)
 med<-med%>%mutate_all(as.factor)
-med[,33]<-as.numeric(med[,33])
-med[,35]<-as.numeric(med[,35])
-medcat<-med[,1:32]
-mednum<-med[,c(33,35)]
+med$OUT_SOWcullpro<-as.numeric(med$OUT_SOWcullpro)
+med$OUT_SOWmortpro<-as.numeric(med$OUT_SOWmortpro)
+medcat<-med %>% select(-ends_with("pro"))
+mednum<-med %>% select(ends_with("pro"))
 ```
 
 
 ```{r echo=TRUE, fig.align="center", fig.height=20, fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
-colnames(medcat[,1:30])
+colnames(medcat)
 library(tidyr)
-gather(medcat[,1:30]) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+gather(medcat) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="green") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
 ```
 
-```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+```{r eval=FALSE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, include=FALSE, warnings=FALSE}
 colnames(medcat[,31:32])
 library(tidyr)
 gather(medcat[,31:32]) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
@@ -181,8 +181,7 @@ table3%>%
 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-
-res_mca = MCA(med, quanti.sup = c(33,35),quali.sup=34, graph = FALSE)
+res_mca = MCA(med, quanti.sup = c(33,35) ,quali.sup=37, graph = FALSE)
 ```
 
 ```{r}
@@ -235,3 +234,6 @@ fviz_mca_var(res_mca, choice = "quanti.sup",
 ```{r echo=FALSE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 classif(res_mca, file="",dim=1:2,nclus=-1,selec="cos2",coef=1,mmax=1,nmax=10,graph=TRUE)
 ```
+
+
+
