@@ -26,3 +26,9 @@ output:
 ***
 ```{r child = "valitut29122017.Rmd"}
 ```
+
+***
+```{r child = "medic.Rmd"}
+```
+
+***
