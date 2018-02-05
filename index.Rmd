@@ -33,20 +33,39 @@ output:
 
 ***
 
-```{r child = "bio.Rmd"}
+```{r child = "bioed.Rmd"}
 ```
 
 ***
-```{r child = "manag.Rmd"}
+```{r child = "managbred.Rmd"}
+```
+***
+```{r child = "managpred.Rmd"}
 ```
 
 ***
-```{r child = "vac.Rmd"}
+```{r child = "managfared.Rmd"}
+```
+
+***
+```{r child = "managed.Rmd"}
 ```
 
 ***
 
-```{r child = "room.Rmd"}
+```{r child = "roombr.Rmd"}
+```
+
+***
+```{r child = "roompr.Rmd"}
+```
+
+***
+```{r child = "roomfar.Rmd"}
+```
+
+***
+```{r child = "roomed.Rmd"}
 ```
 
 ***

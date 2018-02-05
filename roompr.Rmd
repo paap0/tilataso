@@ -1,0 +1,267 @@
+---
+title: "roompr"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+
+---
+
+### Housing; gestation unit
+
+```{r message=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
+
+# Define packages required by this script.
+library(dplyr)
+library(car)
+library(ggplot2)
+library(stargazer)
+library(GGally)
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(tableone)
+library(FactoMineR)
+library(dplyr)
+library(knitr)
+library(DT)
+library(xtable)
+library(factoextra)
+library(magrittr)
+library(GGally)
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(corrplot)
+library(plotly)
+library(dplyr)
+summaryKable <- function(dataFrame) {
+  require(dplyr)
+  require(stringr)
+  vect <- sapply(dataFrame, function(x) {
+    if(!is.factor(x)) { 
+      a <- c(quantile(x, probs = c(0,0.25,0.5), na.rm = T), 
+             mean(x, na.rm = T),
+             quantile(x, probs = c(0.75,1), na.rm = T)) %>% 
+        formatC(format = "f", digits = 3) %>% 
+        unname() 
+    }
+    
+    if(is.factor(x)) {
+      a <- sapply(1:5, function(y) 
+            sum(x == levels(x)[y]) %>% 
+            paste(levels(x)[y],. , sep = ":\ ")) 
+      a <- c("Levels", a) %>% str_replace_all("NA: NA", "--")
+    }
+    
+    return(a)
+  })
+  row.names(vect) <- c("Min", "1st Q", "Median", "Mean", "3rd Q", "Max")
+  return(t(vect))
+}
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# load data
+setwd("~/GitHub/tilataso")
+library(readr)
+library(FactoMineR)
+library(FactoInvestigate)
+library(factoextra)
+library(dplyr)
+library(explor)
+med<-read.csv(file="roompr.csv", header=TRUE)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+glimpse(med)
+med<-med%>%mutate_all(as.factor)
+med$OUT_SOW_cullproNUM 
+colnames(med)=="OUT_SOW_cullproNUM"
+colnames(med)=="OUT_SOWmortpro"
+med$OUT_SOW_cullproNUM<-as.numeric(med$OUT_SOW_cullproNUM)
+med$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
+medcat<-med %>% select(-ends_with("NUM_NO"),-ends_with("dosage_NO"),-ends_with("NUM"))
+medcat<-medcat%>%mutate_all(as.factor)
+mednum<-med %>% select(ends_with("NUM_NO"),(ends_with("dosage_NO")),(ends_with("NUM")))
+mednum<-mednum%>%mutate_all(as.numeric)
+medmca<-medcat
+medmca$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
+medmca$OUT_SOW_cullproNUM<-as.numeric(med$OUT_SOW_cullproNUM)
+medmca<-medmca%>% select(-ends_with("NO"),(-starts_with("M_paras")))
+
+
+X<-medmca   
+colnames(X)[ apply(X, 2, anyNA) ]
+     
+for (i in 1:ncol(X)) {
+  levels(X[,i]) <- c(levels(X[,i]), "Not Assigned")
+  X[which(is.na(X[,i])==TRUE),i] <- "Not Assigned"
+}
+
+X$OUT_SOW_cullproNUM<-as.numeric(X$OUT_SOW_cullproNUM)
+X$OUT_SOW_mort_proNUM<-as.numeric(X$OUT_SOW_mort_proNUM)
+
+medmca<-X 
+```
+
+
+```{r echo=TRUE, fig.align="center", fig.height=20, fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+#colnames(medcat[,1:30])
+library(tidyr)
+gather(medcat) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="green") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+```
+
+```{r eval=FALSE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, include=FALSE, warnings=FALSE}
+#colnames(medcat[,31:32])
+library(tidyr)
+#gather(medcat[,31:32]) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+```
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+library(dplyr)
+library(ggplot2)
+#out<-med %>% dplyr::select(ends_with("pro"))
+#Matrix of plots
+ggpairs(mednum, lower = list(combo = wrap("facethist", bins = 20)), title="Graphical overview of the numeric variables")
+```
+
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
+
+library(tableone)
+KreateTableOne = function(x, ...){
+  t1 = tableone::CreateTableOne(data=x, ...)
+  t2 = print(t1, quote=TRUE)
+  rownames(t2) = gsub(pattern='\\"', replacement='', rownames(t2))
+  colnames(t2) = gsub(pattern='\\"', replacement='', colnames(t2))
+  return(t2)
+}
+
+
+```
+
+
+
+#### Yhteenveto kuolleisuuden mediaanin mukaan
+
+```{r results='hide'}
+#This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+
+
+meddescap<-cbind(mednum,medcat)
+meddesc<-meddescap%>%select(-ends_with("OUT"))
+table1 = KreateTableOne(x=meddesc, factorVars=colnames(medcat), strata='OUT_SOW_mort_dic')
+```
+
+```{r}
+
+table1%>%
+    kable("html", align = "rrr", caption = "Data variable summary strat by Sow mortality") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
+
+```
+
+
+
+
+#### Yhteenveto poistojen mediaanin mukaan
+
+```{r results='hide'}
+#This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+
+
+table2 = KreateTableOne(x=meddesc, factorVars=colnames(medcat), strata='OUT_SOW_cull_dic')
+
+```
+
+```{r}
+
+table2%>%
+    kable("html", align = "rrr", caption = "Data variable summary strat by Sow cull") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
+
+```
+
+
+### Yhteenveto joku hylkays mukaan
+
+```{r eval=FALSE, include=FALSE, results='hide'}
+#This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
+
+
+table3 = KreateTableOne(x=med, factorVars=colnames(medcat), strata='OUT_JOKUHYLK_01')
+```
+
+```{r eval=FALSE, include=FALSE}
+
+table3%>%
+    kable("html", align = "rrr", caption = "Data variable summary strat by JOKUHYLK") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
+
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+res_mca = MCA(medmca, quanti.sup = c(12,13),quali.sup=c(10:11), graph = FALSE)
+
+```
+
+```{r}
+
+summary(res_mca)
+```
+
+To visualize the percentage of inertia explained by each MCA dimension:
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE}
+eig.val <- res_mca$eig
+barplot(eig.val[, 2], 
+        names.arg = 1:nrow(eig.val), 
+        main = "Variances Explained by Dimensions (%)",
+        xlab = "Principal Dimensions",
+        ylab = "Percentage of variances",
+        col ="steelblue")
+# Add connected line segments to the plot
+lines(x = 1:nrow(eig.val), eig.val[, 2], 
+      type = "b", pch = 19, col = "red")
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+res <- explor::prepare_results(res_mca)
+explor::MCA_var_plot(res, xax = 1, yax = 2,
+    var_sup = TRUE, var_lab_min_contrib = 0,
+    col_var = "Variable", symbol_var = "Type",
+    size_var = NULL, size_range = c(10, 300),
+    labels_size = 10, point_size = 56,
+    transitions = TRUE, labels_positions = NULL)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+res <- explor::prepare_results(res_mca)
+explor::MCA_ind_plot(res, xax = 1, yax = 2,ind_sup = FALSE,
+    lab_var = NULL, , ind_lab_min_contrib = 0,
+    col_var = NULL, labels_size = 9,
+    point_opacity = 0.5, opacity_var = NULL, point_size = 64,
+    ellipses = FALSE, transitions = TRUE, labels_positions = NULL)
+```
+
+
+```{r echo=TRUE, fig.align="center", fig.height=3, fig.width=3, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, choice = "quanti.sup",
+             ggtheme = theme_minimal())
+```
+
+
+```{r echo=FALSE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+classif(res_mca, file="",dim=1:2,nclus=-1,selec="cos2",coef=1,mmax=1,nmax=10,graph=TRUE)
+```

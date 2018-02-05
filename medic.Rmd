@@ -76,32 +76,58 @@ library(factoextra)
 library(dplyr)
 library(explor)
 med<-read.csv(file="med.csv", header=TRUE)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+glimpse(med)
 med<-med%>%mutate_all(as.factor)
-med[,33]<-as.numeric(med[,33])
-med[,35]<-as.numeric(med[,35])
-medcat<-med[,1:32]
-mednum<-med[,c(33,35)]
+med$OUT_SOW_cullproNUM 
+colnames(med)=="OUT_SOW_cullproNUM"
+colnames(med)=="OUT_SOWmortpro"
+med$OUT_SOW_cullproNUM<-as.numeric(med$OUT_SOW_cullproNUM)
+med$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
+medcat<-med %>% select(-ends_with("NUM_NO"),-ends_with("dosage_NO"),-ends_with("NUM"))
+medcat<-medcat%>%mutate_all(as.factor)
+mednum<-med %>% select(ends_with("NUM_NO"),(ends_with("dosage_NO")),(ends_with("NUM")))
+mednum<-mednum%>%mutate_all(as.numeric)
+medmca<-medcat
+medmca$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
+medmca$OUT_SOW_cullproNUM<-as.numeric(med$OUT_SOW_cullproNUM)
+medmca<-medmca%>% select(-ends_with("NO"),(-starts_with("M_paras")))
+
+
+X<-medmca        
+for (i in 1:ncol(X)) {
+  levels(X[,i]) <- c(levels(X[,i]), "Not Assigned")
+  X[which(is.na(X[,i])==TRUE),i] <- "Not Assigned"
+}
+
+colnames(X)[ apply(X, 2, anyNA) ]
+
+X$M_induction_0never_1sometimes<-as.factor(X$M_induction_0never_1sometimes)
+X$OUT_SOW_cullproNUM<-as.numeric(X$OUT_SOW_cullproNUM)
+X$OUT_SOW_mort_proNUM<-as.numeric(X$OUT_SOW_mort_proNUM)
 ```
 
 
 ```{r echo=TRUE, fig.align="center", fig.height=20, fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
-colnames(medcat[,1:30])
+#colnames(medcat[,1:30])
 library(tidyr)
-gather(medcat[,1:30]) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+gather(medcat) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
 ```
 
-```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
-colnames(medcat[,31:32])
+```{r eval=FALSE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, include=FALSE, warnings=FALSE}
+#colnames(medcat[,31:32])
 library(tidyr)
-gather(medcat[,31:32]) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
+#gather(medcat[,31:32]) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar(fill="purple") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))+   scale_fill_manual("key")
 ```
 
 ```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE, warnings=FALSE}
 library(dplyr)
 library(ggplot2)
-out<-med %>% dplyr::select(ends_with("pro"))
+#out<-med %>% dplyr::select(ends_with("pro"))
 #Matrix of plots
-ggpairs(out, lower = list(combo = wrap("facethist", bins = 20)), title="Graphical overview of the 2 outcome variables")
+ggpairs(mednum, lower = list(combo = wrap("facethist", bins = 20)), title="Graphical overview of the numeric variables")
 ```
 
 
@@ -127,7 +153,9 @@ KreateTableOne = function(x, ...){
 #This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
 
 
-table1 = KreateTableOne(x=med, factorVars=colnames(medcat), strata='OUT_SOWmortdic')
+meddescap<-cbind(mednum,medcat)
+meddesc<-meddescap%>%select(-ends_with("OUT"))
+table1 = KreateTableOne(x=meddesc, factorVars=colnames(medcat), strata='OUT_SOW_mort_dic')
 ```
 
 ```{r}
@@ -148,7 +176,8 @@ table1%>%
 #This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
 
 
-table2 = KreateTableOne(x=med, factorVars=colnames(medcat), strata='OUT_SOWculldic')
+table2 = KreateTableOne(x=meddesc, factorVars=colnames(medcat), strata='OUT_SOW_cull_dic')
+
 ```
 
 ```{r}
@@ -161,16 +190,16 @@ table2%>%
 ```
 
 
-#### Yhteenveto joku hylkays mukaan
+### Yhteenveto joku hylkays mukaan
 
-```{r results='hide'}
+```{r eval=FALSE, include=FALSE, results='hide'}
 #This is a very hacky function. If used within an RMarkdown document, KreateTableOne should be #called in a code chunk with \code{results='hide'} to hide the plain test results printed from #\code{tableone::CreateTableOne}. The resulting data frame should be saved as an object and used #in a second code chunk for formatted printing. Suggestions for improvement are welcomed.
 
 
 table3 = KreateTableOne(x=med, factorVars=colnames(medcat), strata='OUT_JOKUHYLK_01')
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 table3%>%
     kable("html", align = "rrr", caption = "Data variable summary strat by JOKUHYLK") %>%
@@ -182,7 +211,8 @@ table3%>%
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
-res_mca = MCA(med, quanti.sup = c(33,35),quali.sup=34, graph = FALSE)
+res_mca = MCA(medmca, quanti.sup = c(20,21),quali.sup=c(17:19), graph = FALSE)
+
 ```
 
 ```{r}
@@ -216,7 +246,6 @@ explor::MCA_var_plot(res, xax = 1, yax = 2,
 ```
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-
 res <- explor::prepare_results(res_mca)
 explor::MCA_ind_plot(res, xax = 1, yax = 2,ind_sup = FALSE,
     lab_var = NULL, , ind_lab_min_contrib = 0,
