@@ -19,53 +19,9 @@ output:
 ```
   
 ***
-  
-```{r child = "tilatkappale28122017.Rmd"}
-```
 
 ***
-```{r child = "valitut29122017.Rmd"}
-```
-
-***
-```{r child = "medic.Rmd"}
-```
-
-***
-
-```{r child = "bioed.Rmd"}
-```
-
-***
-```{r child = "managbred.Rmd"}
-```
-***
-```{r child = "managpred.Rmd"}
-```
-
-***
-```{r child = "managfared.Rmd"}
-```
-
-***
-```{r child = "managed.Rmd"}
-```
-
-***
-
-```{r child = "roombr.Rmd"}
-```
-
-***
-```{r child = "roompr.Rmd"}
-```
-
-***
-```{r child = "roomfar.Rmd"}
-```
-
-***
-```{r child = "roomed.Rmd"}
+```{r child = "medyhd22.Rmd"}
 ```
 
 ***
