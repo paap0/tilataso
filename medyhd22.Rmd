@@ -12,11 +12,11 @@ output:
 
 **Background**
 
-Alcohol usage continues to be prevalent among youth. To implement preventive measures the sociodemographic, individual and parental factors behind problem behavior should be understood better. 
+Sow removal continues to be both economically and ethically an important issue. To implement preventive measures the demographic, management and housing factors behind suboptimal culling and mortality proportions should be understood better. 
 
 **Objective**
 
-This study aims to firstly, describe current social, demographic and performance factors and secondly, to investigate the associations between them and high alcohol consumption using school reports and questionnaires from two Portuguese schools.
+This study aims to firstly, describe current management and housing factors and secondly, to investigate the associations between them and removal figures using school reports and questionnaires from two Portuguese schools.
 
 **Method**
 
@@ -105,6 +105,9 @@ Data are loaded. The final data set includes 434 respondents and 19 factorial an
 ```{r fig.align="center", fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
 
 med<-read.csv(file="medyhd22mca.csv",header=TRUE)
+mediso<-read.csv(file="medyhdiso.csv",header=TRUE)
+tilat<-read.csv(file="3006masterfile.csv",header=TRUE)
+tilat<-tilat[1:43,]
 
 med<-med%>%mutate_all(as.factor)
 #med$OUT_SOW_cullproNUM 
@@ -112,9 +115,13 @@ med<-med%>%mutate_all(as.factor)
 #colnames(med)=="OUT_SOWmortpro"
 med$OUT_SOW_cull_proNUM<-as.numeric(med$OUT_SOW_cull_proNUM)
 med$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
+mediso$OUT_SOW_cull_proNUM<-as.numeric(med$OUT_SOW_cull_proNUM)
+mediso$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
+mediso$OUT_SOW_cull_dic<-as.factor(med$OUT_SOW_cull_dic)
+mediso$OUT_SOW_mort_dic<-as.factor(med$OUT_SOW_mort_dic)
 medcat<-med %>% select(-ends_with("NUM_NO"),-ends_with("dosage_NO"),-ends_with("NUM"))
 #medcat<-medcat%>%mutate_all(as.factor)
-#mednum<-med %>% select(ends_with("NUM_NO"),(ends_with("dosage_NO")),(ends_with("NUM")))
+mednum<-med %>% select(ends_with("NUM_NO"),(ends_with("dosage_NO")),(ends_with("NUM")))
 #mednum<-mednum%>%mutate_all(as.numeric)
 medmca<-medcat
 medmca$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
@@ -137,7 +144,7 @@ dfalc<-medmca
 
 ## <span style="color:purple">Descriptive results</span>
 
-Firstly, a detailed variable summary is presented and thereafter the variables are visualized firstly by barplots stratified by gender.Finally, summary tables are created using three different strata: gender, performance group and alcohol use to capture interesting relations.
+Firstly, a detailed variable summary is presented. Thereafter, summary tables are created using two different strata: median mortality and culling. Finally, the variables are visualized by barplots stratified by mortality and culling to capture interesting relations.
 
 
 ### <span style="color:purple">Overall summary</span>
@@ -146,69 +153,42 @@ Firstly, a detailed variable summary is presented and thereafter the variables a
 
 ```{r fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
 library(settings)
+mediso$OUT_SOW_cull_proNUM<-as.numeric(med$OUT_SOW_cull_proNUM)
+mediso$OUT_SOW_mort_proNUM<-as.numeric(med$OUT_SOW_mort_proNUM)
+mediso$R_PR_sowsinsection_NUM<-tilat$R_PR_sowsinsecNUM_NO
+mediso$BASIC_size_pigs_NUM<-tilat$BASIC_SIZE_PigsNUM
+mediso$BASIC_size_sows_NUM<-tilat$BASIC_SIZE_Sows_NUM
+mediso$BASIC_STRESSLEVEL_verymucherpal_some_NUM<-tilat$BASIC_STRESSLEVEL_verymucherpal_some
+mediso$M_farNSAIDS100_NUM<-tilat$M_farNSAIDS100_NUM
+mediso$M_farAB100_NUM<-tilat$M_farAB100_NUM
+mediso$M_pregAB100_NUM<-tilat$M_pregAB100_NUM
+mediso$MG_BR_animdirt_NUM<-tilat$MG_BR_dirt_NUM_NO
+mediso$MG_BR_artinspro_NUM<- tilat$INS_artinsproNUM
+mediso$R_BR_floorsolid_NUM<-tilat$R_BR_floorsolid_NUM_NO
+mediso$MG_PR_animalsdirty_NUM<-tilat$MG_PR_dirt_NUM_NO
+mediso$R_PR_sowgroups_NUM<-tilat$R_PR_sowsNUM_NO
+mediso$R_PR_areapersow_NUM<-tilat$R_PR_areapersow_NUM_NO
+mediso$R_PR_dirtypens_NUM <-tilat$R_PR_dirtNUM_NO
+mediso$R_PR_floorsolid_NUM<-tilat$R_PR_floorsolidNUM_NO
+mediso$MG_FAR_oxuseper10farrowings_NUM<-tilat$M_OX_10far_NUM_NO
+mediso$R_FAR_pensize_NUM<-tilat$R_FAR_pensinsecNUM_NO
+mediso$R_FAR_dirtypens_NUM<-tilat$MG_FAR_dirt_NUM_NO
+mediso$R_FAR_floorsolid_NUM<-tilat$R_FAR_floorsolid_all0_100_100_2_muu1
+mediso$MG_sows_perworker_NUM<-tilat$MG_SOWSperworkeredit_57_113_147_NUM_NO
+mediso$BASIC_edulevel<-tilat$BASIC_edulevel
+
+medcati<-mediso %>% select(-ends_with("NUM_NO"),-ends_with("dosage_NO"),-ends_with("NUM"))
+medcati<-medcat%>%mutate_all(as.factor)
+mednumi<-mediso %>% select(ends_with("NUM_NO"),(ends_with("dosage_NO")),(ends_with("NUM")))
+mednumi<-mednum%>%mutate_all(as.numeric)
+
 reset(options)
 options("scipen"=10, "digits"=2)
-tab1<-CreateTableOne(vars=colnames(dfalc) ,data=dfalc,factorVars = colnames(dfalc[-19]))
+tab1<-CreateTableOne(vars=colnames(mediso) ,data=mediso,factorVars = colnames(medcati))
 summary(tab1)
 reset(options)
 ```
 &nbsp;
-
-### <span style="color:purple">Graphical overview</span>
-
-```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
-#lets plot  
-#density plots for numerical variables7
-colNames <- names(dfalc)
-for(i in colNames){
-    plt<-ggplot(dfalc, aes_string(x=i)) + 
-      geom_bar(aes(fill = OUT_SOW_mort_dic), position = "dodge", stat="count")+
-      scale_fill_manual(values = c("green","red"))
-      print(plt)
-}
-
-```
-&nbsp;
-
-There are approximately as many female as male student respondents. Under 17 year youngs are better represented than the other age groups. Suprisingly low proportion, namely only 10% of the parents live separated. Mother큦 and father큦 low educational status is common: 40% and 48%, respectively. In addition, it seems to be more common for female respondents to have a parent very little educational background.
-
-```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
-#lets plot  
-#density plots for numerical variables7
-colNames <- names(dfalc)
-for(i in colNames){
-    plt<-ggplot(dfalc, aes_string(x=i)) + 
-      geom_bar(aes(fill = OUT_SOW_cull_dic), position = "dodge", stat="count")+
-      scale_fill_manual(values = c("blue","orange"))
-      print(plt)
-}
-
-```
-&nbsp;
-
-Most of the mother큦 working places are defined as "other" (36%) and father's as well (36%). Altogether 14% are stay at home mother큦 and 4% of the father큦 are at home. There are 16% of the mothers teaching and 8% of the fathers.Especially for the females the guardian is the mother, for every fourth it is, yet, the father and for 4% another person. There is family support for 62% of the students, and  it seems to be more common for females.
-
-
-
-
-
-
-&nbsp;
-
-Almost everyone, 95% has positive attitude towards higher eduction. Again, it seems even more common for females. In romantic relationship are 32% of the respondents. Females seem to be a little less active than males: altogether 47% have no extracurricular activities. Family relationships are mainly described as good or very good (76%), which is expected these data coming from a Mediterranian country with high family values. 
-
-
-
-&nbsp;
-
-Altogether 35% are going out frequently, 33% not often but not rarely, and 32% quite rarely. Health status is defined as very bad or bad as often as by almost every fourth respondent. Very good or good health status is very common, though (55%). A little more than every tenth student has one or more class failures whereas 87% have none. School absences are within 6 or less hours in 77% of the cases. 
-
-
-
-&nbsp;
-
-Performance groups represent approximately the lowest, medium low, middle high and highest groups. Very low or low alcohol consumers both at weekdays and during weekends represent 60% of the respondents.However, there seems to be an expected trend towards males drinking more.
-
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 
@@ -220,9 +200,9 @@ KreateTableOne = function(x, ...){
   return(t2)
 }
 
-table1 = KreateTableOne(x=dfalc, strata="OUT_SOW_mort_dic")
+table1 = KreateTableOne(x=mediso, strata="OUT_SOW_mort_dic", factorVars=colnames(medcati))
 
-table2 = KreateTableOne(x=dfalc, strata="OUT_SOW_cull_dic")
+table2 = KreateTableOne(x=mediso, strata="OUT_SOW_cull_dic")
 
 #table3 = KreateTableOne(x=dfalc, strata="High_alcohol")
 ```
@@ -261,9 +241,159 @@ table2%>%
     kable("html", align = "rrr", caption = "Data variable summary stratified by FINAL GRADE") %>%
   kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
   scroll_box(height = "300px" )
+```
+&nbsp;
+
+
+### <span style="color:purple">Graphical overview</span>
+
+#### Barplots by the median mortality 
+
+Red > median mortality
+Green < median mortality
+
+```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
+#lets plot  
+#density plots for numerical variables7
+medcati<-mediso %>% select(-ends_with("NUM_NO"),-ends_with("dosage_NO"),-ends_with("NUM"))
+medcati<-medcati%>%mutate_all(as.factor)
+mednumi<-mediso %>% select(ends_with("NUM_NO"),(ends_with("dosage_NO")),(ends_with("NUM")))
+mednumi<-mednum%>%mutate_all(as.numeric)
+
+colNames <- names(medcati)
+for(i in colNames){
+    plt<-ggplot(mediso, aes_string(x=i)) + 
+      geom_bar(aes(fill = OUT_SOW_mort_dic), position = "dodge", stat="count")+
+      scale_fill_manual(values = c("green","red"))
+      plt + guides(fill=FALSE)
+      print(plt+guides(fill=F))
+}
+
+```
+
+
+&nbsp;
+#### Barplots by the median culling  
+
+Orange > median culling
+Green < median culling
+
+```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
+#lets plot  
+#density plots for numerical variables7
+
+colNames <- names(medcati)
+for(i in colNames){
+    plt<-ggplot(mediso, aes_string(x=i)) + 
+      geom_bar(aes(fill = OUT_SOW_mort_dic), position = "dodge", stat="count")+
+      scale_fill_manual(values = c("green","orange"))
+      plt + guides(fill=FALSE)
+      print(plt+guides(fill=F))
+}
+
+```
+
+
+
+
+
+
+
+&nbsp;
+
+Most of the mother큦 working places are defined as "other" (36%) and father's as well (36%). Altogether 14% are stay at home mother큦 and 4% of the father큦 are at home. There are 16% of the mothers teaching and 8% of the fathers.Especially for the females the guardian is the mother, for every fourth it is, yet, the father and for 4% another person. There is family support for 62% of the students, and  it seems to be more common for females.
+
+
+
+&nbsp;
+
+Almost everyone, 95% has positive attitude towards higher eduction. Again, it seems even more common for females. In romantic relationship are 32% of the respondents. Females seem to be a little less active than males: altogether 47% have no extracurricular activities. Family relationships are mainly described as good or very good (76%), which is expected these data coming from a Mediterranian country with high family values. 
+
+
+
+&nbsp;
+
+Altogether 35% are going out frequently, 33% not often but not rarely, and 32% quite rarely. Health status is defined as very bad or bad as often as by almost every fourth respondent. Very good or good health status is very common, though (55%). A little more than every tenth student has one or more class failures whereas 87% have none. School absences are within 6 or less hours in 77% of the cases. 
+
+
+
+&nbsp;
+
+Performance groups represent approximately the lowest, medium low, middle high and highest groups. Very low or low alcohol consumers both at weekdays and during weekends represent 60% of the respondents.However, there seems to be an expected trend towards males drinking more.
+
+
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+KreateTableOne = function(x, ...){
+  t1 = tableone::CreateTableOne(data=x, ...)
+  t2 = print(t1, quote=TRUE)
+  rownames(t2) = gsub(pattern='\\"', replacement='', rownames(t2))
+  colnames(t2) = gsub(pattern='\\"', replacement='', colnames(t2))
+  return(t2)
+}
+
+table1 = KreateTableOne(x=dfalc, strata="OUT_SOW_mort_dic", factorVars=colnames(medmca[,1:31]))
+
+table2 = KreateTableOne(x=dfalc, strata="OUT_SOW_cull_dic",factorVars=colnames(medmca[,1:31]))
+
+#table3 = KreateTableOne(x=dfalc, strata="High_alcohol")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#knitr::kable(table2)
+table2%>%
+    kable("html", align = "rrr", caption = "Data variable summary stratified by FINAL GRADE") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
 
 ```
 &nbsp;
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#knitr::kable(table2)
+table2%>%
+    kable("html", align = "rrr", caption = "Data variable summary stratified by FINAL GRADE") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "300px" )
+
+```
+&nbsp;
+
+#### The same overviews for the smaller dataset
+
+
+```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
+#density plots for numerical variables7
+
+colNames <- names(dfalc[,1:37])
+for(i in colNames){
+    plt<-ggplot(dfalc, aes_string(x=i)) + 
+      geom_bar(aes(fill = OUT_SOW_cull_dic), position = "dodge", stat="count")+
+      scale_fill_manual(values = c("green","red"))
+      plt + guides(fill=FALSE)
+      print(plt+guides(fill=F))
+}
+
+```
+
+```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
+#lets plot  
+#density plots for numerical variables7
+
+colNames <- names(dfalc[,1:37])
+for(i in colNames){
+    plt<-ggplot(dfalc, aes_string(x=i)) + 
+      geom_bar(aes(fill = OUT_SOW_mort_dic), position = "dodge", stat="count")+
+      scale_fill_manual(values = c("green","orange"))
+      print(plt)
+}
+
+```
+&nbsp;
+
 
 There are differences among the age groups in final grades. Younger student get better scores. Mother큦 educational background seem to affect the grades, whereas father큦 education is not that influental. The same is seen with mother큦 and father큦 working place. Guardian does not affect school performance, but willingness to take higher education definitely does. Surprisingly, going out with friends does not affect final grades, but health status does. There are a lot of students in a very good or good condition performing below the average. Class failures understandably worsen the grades. Low alcohol usage is less common in the best performance group. 
 

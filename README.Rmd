@@ -4,9 +4,9 @@ output: html_document
 ---
 
 
-## Tilataso
+## 
 
-Data-kansiossa on aineisto. 
+
 
 
 

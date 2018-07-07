@@ -1,5 +1,5 @@
 ---
-title: "Tilatasoprojekti"
+title: "Herd level project"
 author: "Paula Bergman, paula.bergman@helsinki.fi"
 output:
   html_document:
@@ -13,12 +13,6 @@ output:
     
 ---
 
-***
-  
-```{r child = "README.Rmd"}
-```
-  
-***
 
 ***
 ```{r child = "medyhd22.Rmd"}
