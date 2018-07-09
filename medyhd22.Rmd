@@ -16,20 +16,24 @@ Sow removal continues to be both economically and ethically an important issue. 
 
 **Objective**
 
-This study aims to firstly, describe current management and housing factors and secondly, to investigate the associations between them and removal figures using school reports and questionnaires from two Portuguese schools.
+This study aimed to firstly, describe current management and housing in Finnish piglet producing farms and secondly, to establish associations between an extensive list of farm characteristics, housing conditions, management practices and on farm mortality (euthanasia and unassisted death) in a sample of Finnish commercial sow farms.
 
-**Method**
+**Materials and methods**
 
-Descriptive results are generated stratified by gender, student performance groups and high alcohol usage.A multiple correspondence analysis is used to analyze social, demographic, student and parental characteristics and high alcohol usage. 
+Client farms from the three largest slaughterhouse companies in Finland were included either voluntary (n=12) or after being convenience-sampled (n=31). Cross-sectional type of study using questionnaire survey and field visit was carried out between February and October 2014. To additionally determine annual mortality percentages for each farm data from the National Swine Herd Register were obtained. Multiple correspondence analysis (MCA) was applied to identify complex underlying typologies based on all the collected categorical variables. The variables representing sow mortality were added as supplementary variables to interpret their relationship with farm descriptors. Wilcoxon rank sum test was used to compare the farm groups located in different parts of the generated graphs.
 
 **Results**
 
 The result from multiple correspondence analysis shows that there is association between high alcohol usage and social and demographic features. There are individuals which  share both high frequency of high alcohol consumptions and high frequencies for one or more class failures, lowest performance with regard to final grade, no willingness to higher eduction, older age, guardian being other than mother or father and going out frequently. In addition, they share a low frequency for mother´s and father´s higher eduction. Surprisingly, good health status defined by the respondent him or herself was quite frequent among the group members having high alcohol usage in common.
 
+The first three MCA dimensions explained almost 33% of the variability among the farms. Number of sows per worker, farm size, pest control features, use of bedding, rooting and nesting materials, amount of solid floor and managing all-in-all-out in the farrowing unit, feeding systems and the levels of parturition induction and oxytocin use contributed to the inertia of the first factorial axis (F1).  In addition, the coordinates representing different percentages of mortality shifted progressively along the F1 towards the more positive side. The distribution of the groups of farms with negative and positive coordinates for F1 differed for mortality (mean 7.4/11.9, p<0.05).
+
 
 **Conclusion**
 
 There is an indication that some sociodemographic factors have joint effects. It is important to confirm the associations using advanced techniques, e.g. by applying theory of planned behavior to study the relations among personal beliefs, attitudes, behavioral intentions and behaviour and other individual as well as parental features to investigate the risk factors for high alcohol usage.
+
+This study indicates the need to consider potential factor combinations instead of individual risk factors to control sow on farm mortality.This study indicates the need to consider potential factor combinations instead of individual risk factors to control sow on farm mortality.
 
 
 ##<span style="color:purple">Introduction</span>
@@ -171,14 +175,14 @@ mediso$R_PR_areapersow_NUM<-tilat$R_PR_areapersow_NUM_NO
 mediso$R_PR_dirtypens_NUM <-tilat$R_PR_dirtNUM_NO
 mediso$R_PR_floorsolid_NUM<-tilat$R_PR_floorsolidNUM_NO
 mediso$MG_FAR_oxuseper10farrowings_NUM<-tilat$M_OX_10far_NUM_NO
-mediso$R_FAR_pensize_NUM<-tilat$R_FAR_pensinsecNUM_NO
+mediso$R_FAR_pensize_NUM<-tilat$R_FARpenNUM_NO
 mediso$R_FAR_dirtypens_NUM<-tilat$MG_FAR_dirt_NUM_NO
 mediso$R_FAR_floorsolid_NUM<-tilat$R_FAR_floorsolid_all0_100_100_2_muu1
 mediso$MG_sows_perworker_NUM<-tilat$MG_SOWSperworkeredit_57_113_147_NUM_NO
 mediso$BASIC_edulevel<-tilat$BASIC_edulevel
 
 medcati<-mediso %>% select(-ends_with("NUM_NO"),-ends_with("dosage_NO"),-ends_with("NUM"))
-medcati<-medcat%>%mutate_all(as.factor)
+medcati<-medcati%>%mutate_all(as.factor)
 mednumi<-mediso %>% select(ends_with("NUM_NO"),(ends_with("dosage_NO")),(ends_with("NUM")))
 mednumi<-mednum%>%mutate_all(as.numeric)
 
